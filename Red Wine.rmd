@@ -76,28 +76,18 @@ Then we would like to see some extreme cases(below 4 or greater than 7), to see 
 Bad_wine <- subset(wineQualityReds,quality<=5)
 Good_wine <- subset(wineQualityReds,quality>=7)
 
-Extreme_samples <-union(Bad_wine,Good_wine)
+Extreme_samples <- union(Bad_wine,Good_wine)
+Extreme_samples$rating <- ifelse(Extreme_samples$quality <=4, 'Bad','Good')
 
-ggplot(aes(x = citric.acid, y = quality), data = Extreme_samples) + 
-  geom_point(alpha = 0.5, size = 1, position = 'jitter',aes(color=quality))
-ggplot(aes(x = residual.sugar, y = quality), data = Extreme_samples) + 
-  geom_point(alpha = 0.5, size = 1, position = 'jitter',aes(color=quality))
-ggplot(aes(x = chlorides, y = quality), data = Extreme_samples) + 
-  geom_point(alpha = 0.5, size = 1, position = 'jitter',aes(color=quality))
-ggplot(aes(x = free.sulfur.dioxide, y = quality), data = Extreme_samples) + 
-  geom_point(alpha = 0.5, size = 1, position = 'jitter',aes(color=quality))
-ggplot(aes(x = total.sulfur.dioxide, y = quality), data = Extreme_samples) + 
-  geom_point(alpha = 0.5, size = 1, position = 'jitter',aes(color=quality))
-
-
+ggplot(aes(x = residual.sugar, y = alcohol), data = Extreme_samples) + 
+  geom_point(alpha = 0.5, size = 1, position = 'jitter',aes(color=rating))
 
 ```
-
-
 
 # Univariate Analysis
 
 ### What is the structure of your dataset?
+
 There are 1599 observations of 13 variables (X,fixed.acidity,volatile.acidity,citric.acid,residual.sugar,chlorides,free.sulfur.dioxide,total.sulfur.dioxide,density,pH,sulphates,alcohol,quality).
 Quality is an ordered, categorical, discrete variable. It was on a 0-10 scale, rated by at least 3 wine experts. The values ranged only from 3 to 8, with a mean of 5.636 and median of 6.
 X is the numbering system for the wine samples.
@@ -106,16 +96,15 @@ All other variables are all quantitative factors about the chemical content of t
 Other observations:
 Most red wine were rated as 5 or 6.
 Factors like residual.sugar/free.sulfur.dioxide has significant outliers.
-
-From the variable descriptions, it appears that fixed.acidity ~ volatile.acidity and free.sulfur.dioxide ~ total.sulfur.dioxide may possible by dependent, subsets of each other.
-
-
-About 75% of diamonds have carat weights less than 1.
-The median price for a diamonds $2401 and the max price is $18,823.
+From the description of variables, it seems that the fixed.acidity ~ volatile.acidity and free.sulfur.dioxide ~ total.sulfur.dioxide can be corralated variables.
 
 ### What is/are the main feature(s) of interest in your dataset?
 
+
+
 ### What other features in the dataset do you think will help support your investigation into your feature(s) of interest?
+
+
 
 ### Did you create any new variables from existing variables in the dataset?
 
