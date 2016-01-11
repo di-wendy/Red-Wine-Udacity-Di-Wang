@@ -1,0 +1,185 @@
+Red Wine Quality by Di Wang
+========================================================
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, packages}
+# Load all of the packages that you end up using
+# in your analysis in this code chunk.
+
+# Notice that the parameter "echo" was set to FALSE for this code chunk.
+# This prevents the code from displaying in the knitted HTML output.
+# You should set echo=FALSE for all code chunks in your file.
+
+library(ggplot2)
+library(dplyr)
+library(GGally)
+library(scales)
+library(memisc)
+library(reshape)
+library(gridExtra)
+```
+
+```{r echo=FALSE, Load_the_Data}
+# Load the Data
+wineQualityReds <- read.csv('wineQualityReds.csv')
+
+```
+
+# Univariate Plots Section
+```{r echo=FALSE, Univariate_Plots}
+dim(wineQualityReds)
+names(wineQualityReds)
+str(wineQualityReds)
+summary(wineQualityReds)
+```
+
+```{r echo=FALSE,Wine_Quality}
+qplot(quality, data = wineQualityReds,binwidth = 0.5) + coord_cartesian(xlim = c(3, 8))
+```
+
+The quality of the red wine has a slightly skewed normal distribution. Most red wines are rated as 5 or 6. The lowest rating is 3 and the highest rating is 8.
+First, we would like to plot the distribution of each individual factors and try to find the potential relationship.
+
+```{r echo=FALSE,message=FALSE,warning=FALSE, multiple}
+grid.arrange(qplot(wineQualityReds$fixed.acidity),
+             qplot(wineQualityReds$volatile.acidity),
+             qplot(wineQualityReds$citric.acid),
+             qplot(wineQualityReds$residual.sugar),
+             qplot(wineQualityReds$chlorides),
+             qplot(wineQualityReds$free.sulfur.dioxide),
+             qplot(wineQualityReds$total.sulfur.dioxide),
+             qplot(wineQualityReds$density),
+             qplot(wineQualityReds$pH),
+             qplot(wineQualityReds$sulphates),
+             qplot(wineQualityReds$alcohol,binwidth = 0.1),
+             qplot(wineQualityReds$quality),
+             ncol = 4)
+```
+
+At the first glance, the following factors have normal distribution:
+1. Fixed Acidity
+2. Volatile.acidity
+3. Desity
+4. PH
+
+And, the following factors have a slightly skewed distribution,which is more like the quality distribution:
+1. citric.acid
+2. residual.sugar
+3. chlorides
+4. free.sulfur.dioxide
+5. total.sulfur.dioxide
+
+Theoretically speaking, quality rating is a relatively subjective factor. Human-beings, even the experts have their limit in distinguish the tiny difference between each sample, not mentioned the consumers. The concentrated ratings reflected that the qualities are rather similar.
+
+Then we would like to see some extreme cases(below 4 or greater than 7), to see why those samples stand out as unique.
+
+```{r echo=FALSE, Subset}
+Bad_wine <- subset(wineQualityReds,quality<=5)
+Good_wine <- subset(wineQualityReds,quality>=7)
+
+Extreme_samples <-union(Bad_wine,Good_wine)
+
+ggplot(aes(x = citric.acid, y = quality), data = Extreme_samples) + 
+  geom_point(alpha = 0.5, size = 1, position = 'jitter',aes(color=quality))
+ggplot(aes(x = residual.sugar, y = quality), data = Extreme_samples) + 
+  geom_point(alpha = 0.5, size = 1, position = 'jitter',aes(color=quality))
+ggplot(aes(x = chlorides, y = quality), data = Extreme_samples) + 
+  geom_point(alpha = 0.5, size = 1, position = 'jitter',aes(color=quality))
+ggplot(aes(x = free.sulfur.dioxide, y = quality), data = Extreme_samples) + 
+  geom_point(alpha = 0.5, size = 1, position = 'jitter',aes(color=quality))
+ggplot(aes(x = total.sulfur.dioxide, y = quality), data = Extreme_samples) + 
+  geom_point(alpha = 0.5, size = 1, position = 'jitter',aes(color=quality))
+
+
+
+```
+
+
+
+# Univariate Analysis
+
+### What is the structure of your dataset?
+There are 1599 observations of 13 variables (X,fixed.acidity,volatile.acidity,citric.acid,residual.sugar,chlorides,free.sulfur.dioxide,total.sulfur.dioxide,density,pH,sulphates,alcohol,quality).
+Quality is an ordered, categorical, discrete variable. It was on a 0-10 scale, rated by at least 3 wine experts. The values ranged only from 3 to 8, with a mean of 5.636 and median of 6.
+X is the numbering system for the wine samples.
+All other variables are all quantitative factors about the chemical content of the red wine.
+
+Other observations:
+Most red wine were rated as 5 or 6.
+Factors like residual.sugar/free.sulfur.dioxide has significant outliers.
+
+From the variable descriptions, it appears that fixed.acidity ~ volatile.acidity and free.sulfur.dioxide ~ total.sulfur.dioxide may possible by dependent, subsets of each other.
+
+
+About 75% of diamonds have carat weights less than 1.
+The median price for a diamonds $2401 and the max price is $18,823.
+
+### What is/are the main feature(s) of interest in your dataset?
+
+### What other features in the dataset do you think will help support your investigation into your feature(s) of interest?
+
+### Did you create any new variables from existing variables in the dataset?
+
+### Of the features you investigated, were there any unusual distributions? Did you perform any operations on the data to tidy, adjust, or change the form of the data? If so, why did you do this?
+
+
+
+# Bivariate Plots Section
+```{r echo=FALSE, Bivariate_Plots}
+
+```
+
+# Bivariate Analysis
+
+### Talk about some of the relationships you observed in this part of the investigation. How did the feature(s) of interest vary with other features in the dataset?
+
+### Did you observe any interesting relationships between the other features (not the main feature(s) of interest)?
+
+### What was the strongest relationship you found?
+
+
+
+
+# Multivariate Plots Section
+
+```{r echo=FALSE, Multivariate_Plots}
+
+```
+
+# Multivariate Analysis
+
+### Talk about some of the relationships you observed in this part of the investigation. Were there features that strengthened each other in terms of looking at your feature(s) of interest?
+
+### Were there any interesting or surprising interactions between features?
+
+### OPTIONAL: Did you create any models with your dataset? Discuss the strengths and limitations of your model.
+
+------
+
+# Final Plots and Summary
+
+### Plot One
+```{r echo=FALSE, Plot_One}
+
+```
+
+### Description One
+
+
+### Plot Two
+```{r echo=FALSE, Plot_Two}
+
+```
+
+### Description Two
+
+
+### Plot Three
+```{r echo=FALSE, Plot_Three}
+
+```
+
+### Description Three
+
+------
+
+# Reflection
