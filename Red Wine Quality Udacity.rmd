@@ -1,0 +1,179 @@
+Red Wine and White Wine Quality by Di Wang
+========================================================
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, packages}
+# Load all of the packages that you end up using
+# in your analysis in this code chunk.
+
+# Notice that the parameter "echo" was set to FALSE for this code chunk.
+# This prevents the code from displaying in the knitted HTML output.
+# You should set echo=FALSE for all code chunks in your file.
+
+library(ggplot2)
+library(dplyr)
+library(GGally)
+library(scales)
+library(memisc)
+library(reshape)
+library(gridExtra)
+```
+
+```{r echo=FALSE, Load_the_Data}
+# Load the Data
+wineQualityReds <- read.csv('wineQualityReds.csv')
+wineQualityWhites <- read.csv('wineQualityWhites.csv')
+wineQualityReds['color']='Red'
+wineQualityWhites['color']='White'
+df <- union(wineQualityReds,wineQualityWhites)
+```
+
+# Univariate Plots Section
+```{r echo=FALSE, Univariate_Plots}
+dim(df)
+names(df)
+str(df)
+summary(df)
+```
+
+```{r echo=FALSE,Wine_Quality}
+qplot(x= quality, fill = color, data = df,binwidth = 1) + scale_x_continuous(breaks = seq(3,10,1), lim = c(3,10)) 
+```
+
+The quality of the red wine has a slightly skewed normal distribution. Most red wines are rated as 5 or 6. The lowest rating is 3 and the highest rating is 9.
+We would like to plot the distribution of each individual factors and try to find the potential relationships.
+
+```{r echo=FALSE,message=FALSE,warning=FALSE, multiple}
+grid.arrange(qplot(df$fixed.acidity),
+             qplot(df$volatile.acidity),
+             qplot(df$citric.acid),
+             qplot(df$residual.sugar),
+             qplot(df$chlorides),
+             qplot(df$free.sulfur.dioxide),
+             qplot(df$total.sulfur.dioxide),
+             qplot(df$density),
+             qplot(df$pH),
+             qplot(df$sulphates),
+             qplot(df$alcohol,binwidth = 0.1),
+             qplot(df$quality),
+             ncol = 4)
+```
+
+At the first glance, the following factors have normal distribution:
+1. Fixed Acidity
+2. Volatile.acidity
+3. Desity
+4. PH
+
+And, the following factors have a slightly skewed distribution,which is more like the quality distribution:
+1. citric.acid
+2. residual.sugar
+3. chlorides
+4. free.sulfur.dioxide
+5. total.sulfur.dioxide
+6. sulphates
+7. alcohol
+
+# Univariate Analysis
+
+### What is the structure of your dataset?
+
+There are 6497 observations of 13 variables (X,fixed.acidity,volatile.acidity,citric.acid,residual.sugar,chlorides,free.sulfur.dioxide,total.sulfur.dioxide,density,pH,sulphates,alcohol,quality).
+Quality is an ordered, categorical, discrete variable. It was on a 0-10 scale, rated by at least 3 wine experts. The values ranged only from 3 to 9, with a mean of 5.818 and median of 6.
+X is the numbering system for the wine samples.
+Color was a created categorical factor.
+All other variables are all quantitative factors about the chemical content of the wine.
+
+### What is/are the main feature(s) of interest in your dataset?
+
+The factors affect the quality of red/white wine. I suspected that the alcohol,residual.sugar and PH will affect the quality of red/white wine. 
+
+### What other features in the dataset do you think will help support your investigation into your feature(s) of interest?
+
+From the description of variables, it seems that the fixed.acidity & volatile.acidity, free.sulfur.dioxide & total.sulfur.dioxide, alcohol and density can be corralated variables.
+
+### Did you create any new variables from existing variables in the dataset?
+
+Yes, 'color' was the created new variables.
+
+### Of the features you investigated, were there any unusual distributions? Did you perform any operations on the data to tidy, adjust, or change the form of the data? If so, why did you do this?
+
+Factors like residual.sugar/free.sulfur.dioxide has significant outliers. However, considering the unit used, the outliers can be accepted and the data is tidy data.
+
+# Bivariate Plots Section
+```{r echo=FALSE, message=FALSE,warning=FALSE, Bivariate_Plots}
+
+ggpairs(df)
+
+ggplot(aes(x=alcohol,y=density),data=df)+geom_point(alpha=1/5) + ylim(0.985,1.005) + geom_smooth(method='lm')
+
+ggplot(aes(x=residual.sugar,y=density),data=df)+geom_point(alpha=1/5)+ xlim(0,40) + ylim(0.98,1.02) + geom_smooth(method='lm')
+
+ggplot(aes(x=free.sulfur.dioxide,y=total.sulfur.dioxide),data=df)+geom_point(alpha=1/5) + xlim(0,150)+ geom_smooth(method='lm')
+
+```
+
+
+# Bivariate Analysis
+
+### Talk about some of the relationships you observed in this part of the investigation. How did the feature(s) of interest vary with other features in the dataset?
+
+The alcohol and residual sugar has correlation coefficient as -0.687 and 0.553 respectively with density.
+
+### Did you observe any interesting relationships between the other features (not the main feature(s) of interest)?
+
+The free.sulfur.dioxide and total.sulfur.dioxide are positively related to each other.
+
+### What was the strongest relationship you found?
+
+The strongest relationship is between desity and alhocol (R=-0.687), which makes sense because alhocol has smaller desity than water (desity = 49.3 lb/ft^3 and 62.4 lb/ft^3)
+
+
+# Multivariate Plots Section
+
+```{r echo=FALSE, Multivariate_Plots}
+
+
+
+
+```
+
+# Multivariate Analysis
+
+### Talk about some of the relationships you observed in this part of the investigation. Were there features that strengthened each other in terms of looking at your feature(s) of interest?
+
+### Were there any interesting or surprising interactions between features?
+
+### OPTIONAL: Did you create any models with your dataset? Discuss the strengths and limitations of your model.
+
+------
+
+# Final Plots and Summary
+
+### Plot One
+```{r echo=FALSE, Plot_One}
+
+```
+
+### Description One
+
+
+### Plot Two
+```{r echo=FALSE, Plot_Two}
+
+```
+
+### Description Two
+
+
+### Plot Three
+```{r echo=FALSE, Plot_Three}
+
+```
+
+### Description Three
+
+------
+
+# Reflection
+
+
