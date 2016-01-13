@@ -255,7 +255,7 @@ The nature and brewing processes made the telling difference. Through the data, 
 
 Some facotrs affecting quality also differed in red and white wine. Residual sugar and acids made positive contribution to the quality but they will decrease the taste for white wine. Sulphate positively influenced the red wine quality but white wine seems to be insensitive to this chemical. Both wine proned to rate higher alcohol content as better quality.
 
-After all, quality rating is a relatively subjective factor. Human-beings, even the experts have their limit in distinguish the tiny difference between each sample, not mentioned the consumers. That's probably why most wine were rated as 5 or 6. If more extreme cases (below 3 or greater than 8) can be gathered, I would be interested to see why those samples stand out as unique.
+After all, quality rating is a relatively subjective factor. Human-beings, even the experts have their limits in distinguishing the tiny difference between each sample, not mentioned the consumers. That's probably why most wine were rated as 5 or 6. If more extreme cases (below 3 or greater than 8) can be gathered, I would be interested to see why those samples stand out as unique.
 
 
 Reference:
