@@ -1,3 +1,3 @@
-# Red-Wine-Udacity-Di-Wang
+# Tutorial
 
-This is a Udacity project about facotrs affecting wine quality.
+This is my tutorial repository.
