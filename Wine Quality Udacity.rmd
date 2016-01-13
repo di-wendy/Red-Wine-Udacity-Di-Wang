@@ -111,7 +111,9 @@ Factors like residual.sugar/free.sulfur.dioxide has significant outliers. Howeve
 
 ```{r echo=FALSE, message=FALSE,warning=FALSE, Bivariate_Plots}
 
-ggpairs(df)
+ggpairs(df,
+        lower = list(continuous = wrap("points", shape = I('.'))),
+        upper = list(combo = wrap("box", outlier.shape = I('.'))))
 
 ggplot(aes(x=alcohol,y=density),data=df)+geom_point(alpha=1/5) + 
   ylim(0.985,1.005) + 
@@ -205,7 +207,7 @@ Chlorides has negative effect on both red wine and white wine, but there are sig
 
 # Final Plots and Summary
   
-### Plot One Quality Distribution of Red & White Wine
+### Plot One: Quality Distribution of Red & White Wine
 
 ```{r echo=FALSE,message=FALSE,warning=FALSE,Plot_One}
 qplot(x= quality, fill = color, data = df,binwidth = 1) + 
@@ -216,8 +218,8 @@ qplot(x= quality, fill = color, data = df,binwidth = 1) +
 
 The quality of wine has a slightly skewed normal distribution. Most wine were rated as 5 or 6. The lowest rating is 3 and the highest rating is 9.
 
-### Plot Two Difference between Red & White Wine
-```{r echo=FALSE, Plot_Two}
+### Plot Two: Difference between Red & White Wine
+```{r echo=FALSE, message=FALSE,warning=FALSE,Plot_Two}
 grid.arrange(qplot(x = color, y = quality, data = df, geom = "boxplot"),
              qplot(x = color, y = fixed.acidity, data = df, geom = "boxplot"),
              qplot(x = color, y = alcohol, data = df, geom = "boxplot"),
@@ -230,8 +232,8 @@ grid.arrange(qplot(x = color, y = quality, data = df, geom = "boxplot"),
 This picture depicts the difference between red and white wine. Red wine has more acids, sulphate, chlorides, less sugar and slightly less alcohol.
 
 
-### Plot Three
-```{r echo=FALSE, Plot_Three}
+### Plot Three: The Alcohol vs.Wine Quality
+```{r echo=FALSE,message=FALSE,warning=FALSE,Plot_Three}
 grid.arrange(ggplot(data=subset(df,color='White'),aes(x = quality, y = alcohol)) +
               geom_point(alpha=1/4,position=position_jitter(),color='green') +
               geom_smooth(,method='loess',color='blue')+
