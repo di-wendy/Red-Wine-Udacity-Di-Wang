@@ -36,67 +36,89 @@ Number of Observations and variables:
 ```{r echo=FALSE, warning=FALSE, message=FALSE,Univariate_Plots}
 dim(df)
 ```
+
 Field names:
 ```{r echo=FALSE, warning=FALSE, message=FALSE,Univariate_Plots2}
 names(df)
 ```
+
 Few lines of the data and summary:
 ```{r echo=FALSE, warning=FALSE, message=FALSE,Univariate_Plots3}
 str(df)
 summary(df)
 ```
 
+Let's look at the quality distribution now[how they rated the wine]
+
 ```{r echo=FALSE, warning=FALSE, message=FALSE,Quality_Plot}
-ggplot(df, aes(x=quality)) + geom_bar(stat="count") 
+ggplot(df, aes(x=quality)) + geom_bar(stat="count") + ggtitle("Quality Distribution")
 ```
 
 The quality of wine has a slightly skewed normal distribution. Most wine were rated as 5 or 6. The lowest rating is 3 and the highest rating is 9.
 
 We would like to plot each individual factors and try to find their potential influence on wine quality.
 
-First, let's look at the alcohol:
+Then, let's look at the most understandable item --- alcohol:
 
 ```{r echo=FALSE,message=FALSE,warning=FALSE,alcohol}
-qplot(df$alcohol,binwidth = 0.1) + xlab('alcohol')
+qplot(df$alcohol,binwidth = 0.1,xlab="Acohol Content(%)")
 summary(df$alcohol)
 ```
+
 The minimum alcohol content of the sample is 8% and the maximum alcohol content is 14.9%. Mean alcohol content is 10.49. The alcohol has a skewed normal distribution.
 
+Let's look at another common item --- residual sugar:
+
 ```{r echo=FALSE,message=FALSE,warning=FALSE,residual.sugar}
-qplot(df$residual.sugar) + xlab('residual.sugar')
+qplot(df$residual.sugar,fill = "red") + xlab('residual.sugar') + ggtitle("Sweetness")
 summary(df$residual.sugar)
 ```
-Unlike alcohol, the range for residual sugar is great. From the wikipedia classification, dry wine has a sweetness less than 4 g/L, Medium Dry has 4-12 g/L, Medium is 12-45 g/L, Sweet is greater than 45 g/L. We would like to look at its distribtuions.
+
+Unlike the alcohol, the range of residual sugar is great. From the classification of wikipedia--- dry wine has a sweetness less than 4 g/L, Medium Dry has 4-12 g/L, Medium is 12-45 g/L, Sweet is greater than 45 g/L.
+
+Based upon the definition, the percentage of each type can be seen in the following graph:
 
 ```{r echo=FALSE,message=FALSE,warning=FALSE,residual.sugar2}
 
 df['type'] <- ifelse(df$residual.sugar<=4,'Dry',ifelse(df$residual.sugar<=12,"Medium Dry",ifelse(df$residual.sugar<=45,"Medium","Sweet")))
 
 pie(table(df$type))
+
+table(df$type)
 ```
 
 Most samples are dry wine and only a barely visible portion is sweet wine.
 
 let's look at acids group:
 
+
 ```{r echo=FALSE,message=FALSE,warning=FALSE,acids}
 
-grid.arrange(qplot(x=fixed.acidity,fill=color,data=df),
-             qplot(x=volatile.acidity,fill=color,data=df),
-             qplot(x=citric.acid,fill=color,data=df),
+grid.arrange(qplot(x=fixed.acidity,fill=color,data=df,xlab="fixed.acidity(g/L)"),
+             qplot(x=volatile.acidity,fill=color,data=df,xlab="volatile.acidity(g/L)"),
+             qplot(x=citric.acid,fill=color,data=df,xlab="citric.acid(g/L)"),
+             top = "Acids",
              ncol = 1)
 ```
-The fixed.acids have normal distribution. Volatile.acids and citric acids had skewed distribution.
+
+The fixed.acids have normal distribution. Volatile.acids and citric acids have skewed distribution.
 
 Then we would like to see the chlorides and sulphates:
 
-```{r echo=FALSE,message=FALSE,warning=FALSE, chlorides_and_sulphates}
+```{r echo=FALSE,message=FALSE,warning=FALSE, chlorides}
 
-qplot(x=chlorides,data=df)
-qplot(x=sulphates,data=df)
+qplot(x=chlorides,data=df,xlab="chlorides(g/L)")+ggtitle("Chlorides")
+summary(df$chlorides)
 ```
 
-Both chlorides and sulphates have skewed distribtuion and significant outliers.
+The chlorides has a skewed distribtuion and a few significant outliers.The maximum value is nearly 10 times of the 3rd Qu value.
+
+```{r echo=FALSE,message=FALSE,warning=FALSE, sulphates}
+
+qplot(x=sulphates,data=df,xlab="sulphates(g/L)")+ggtitle("Sulphate")
+summary(df$sulphates)
+```
+The sulphates also has a skewed distribtuion, however, the ourlier is not as significant as chlorides. The maximum value is 2g/L and minimum value is 0.22 g/L.
 
 Due to the nature of the description, the (11) factors can be classified as following:
 1. Acids
@@ -153,6 +175,7 @@ ggpairs(pair1) +
         axis.ticks = element_blank(),
         axis.text = element_blank())
 ```
+
 The acids does not have strong relationship with quality. Among the factors, volatile.acids has the greater R (-0.266). Surprisingly, the volatile.acids has negative correlation with citric.acid, and pH (a log scale acidity) has positive relationship to volatile.acids. We wil examine this relations further.
 
 That's then examine the second group of factors, residual sugar, alcohol, density, sulphate, chloride and quality.
@@ -173,6 +196,7 @@ ggpairs(pair2) +
         axis.ticks = element_blank(),
         axis.text = element_blank())
 ```
+
 This result gets along well with our physics knowledge, the sugar add to density and alcohol content reduces density. Among the factors, alcohol and chlorides are most critical independent factors (density can be seen as a dependent factor) that influence quality.
 
 Let's see the last group of data.
@@ -192,29 +216,77 @@ ggpairs(pair3) +
         axis.ticks = element_blank(),
         axis.text = element_blank())
 ```
+
 The last group shows a rather weak relationship. The type/color does not seem to influence the quality and all three other factors have weak relationship with quality. The strongest relationship is between free.sulfur.dioxide and total.sulfur.dioxide. However, it can be seen from their names...
 
-Now let's examine the key factors, alcohol, chlorides, and volatile.acids and their relationship to quality. We will also exmine the difference between red and white wine. Here I will include one more factor I am intersted in ---the residual sugar.
+Now let's examine the key factors, alcohol, chlorides, and volatile.acids and their relationship to quality. 
 
 
-```{r echo=FALSE, message=FALSE,warning=FALSE, Bivariate_Plots4}
+```{r echo=FALSE, message=FALSE,warning=FALSE, Bivariate_Plots4_1}
 
 ggplot(aes(x=alcohol,y=quality),data=df)+
-  geom_point(alpha=1/5,position=position_jitter(),size=1) + geom_smooth(method='lm')
+  geom_point(alpha=1/5,position=position_jitter(),size=1) + geom_smooth(method='lm') +
+  ggtitle("Alcohol vs. Quality")
 
+R1<-cor(df$alcohol,df$quality)
+```
+
+The correlation factor between alcohol and quality is positve. (R=0.4443185)
+
+```{r echo=FALSE, message=FALSE,warning=FALSE, Bivariate_Plots4_2}
 ggplot(aes(x=chlorides,y=quality),data=df)+ xlim(0,0.2)+
-  geom_point(alpha=1/5,position=position_jitter(),size=1) + geom_smooth(method='lm')
+  geom_point(alpha=1/5,position=position_jitter(),size=1) + geom_smooth(method='lm') +
+  ggtitle("Chlorides vs. Quality")
+
+R2<-cor(df$chlorides,df$quality)
+```
+
+The correlation factor between chlorides and quality is negative. (R=-0.2006655)
+
+```{r echo=FALSE, message=FALSE,warning=FALSE, Bivariate_Plots4_3}
 
 ggplot(aes(x=volatile.acidity,y=quality),data=df)+ xlim(0,1.2) +
-  geom_point(alpha=1/5,position=position_jitter(),size=1) + geom_smooth(method='lm')
-
-qplot(x = color, y = alcohol, data = df, geom = "boxplot")
-qplot(x = color, y = chlorides, data = df, geom = "boxplot")
-qplot(x = color, y = volatile.acidity, data = df, geom = "boxplot")
-qplot(x = color, y = residual.sugar, data = df, geom = "boxplot")
+  geom_point(alpha=1/5,position=position_jitter(),size=1) + geom_smooth(method='lm') +
+  ggtitle("Acids vs. Quality")
+R3<-cor(df$volatile.acidity,df$quality)
 
 ```
-The alcohol has positive relationship with quality, while chlorides and volatile.acidity will decrease the quality.
+
+The correlation factor between volatile.acidity and quality is negative. (R=-0.2656995)
+
+We will also exmine the difference between red and white wine. Here I will include one more factor I am intersted in ---the residual sugar.
+
+```{r echo=FALSE, message=FALSE,warning=FALSE, Wine_box_alcohol}
+qplot(x = color, y = alcohol, data = df, geom = "boxplot")+
+  ylab("alcohol content (%)") +
+  ggtitle("Alcohol in Red and White")
+```
+
+The difference of alcohol between white and red wine is not significant.
+
+```{r echo=FALSE, message=FALSE,warning=FALSE, Wine_box_chlorides}
+qplot(x = color, y = chlorides, data = df, geom = "boxplot", ylim=c(0,0.15)) +
+  ylab("chlorides (g/L)") +
+  ggtitle("chlorides in Red and White")
+```
+
+By removing the outlier, we can see that the average chlorides content in red wine is higher than what in white wine.
+
+```{r echo=FALSE, message=FALSE,warning=FALSE, Wine_box_volatile_acidity}
+qplot(x = color, y = volatile.acidity, data = df, geom = "boxplot") +
+  ylab("volatile.acidity (g/L)") +
+  ggtitle("Sourness in Red and White")
+```
+
+From this figure, the acids in red wine is approximately twice as in white wine. We can say that red wine is more sour.
+
+```{r echo=FALSE, message=FALSE,warning=FALSE, Wine_box_volatile.acidity}
+qplot(x = color, y = residual.sugar, data = df, geom = "boxplot", ylim=c(0,25)) +
+  ylab("residual.sugar(g/L)") +
+  ggtitle("Sweetness in Red and White")
+```
+
+From all above, the alcohol has positive relationship with quality, while chlorides and volatile.acidity will decrease the quality.
 
 Among red and white wine, white wine has less volatile.acidity and chlorides, more sugar, and a slightly higher alcohol content.
 
@@ -240,7 +312,9 @@ The strongest relationship is between density and alhocol (R=-0.687), which make
 
 ggplot(data=df,aes(x = quality, y = alcohol,color = color)) +
   geom_point(position=position_jitter(),size=1) +
-  geom_smooth(method='lm')
+  geom_smooth(method='lm') +
+  ylab("alcohol(%")+
+  ggtitle("Alcohol vs. Quality for Red and White Wine")
 
 ```
 
@@ -250,9 +324,12 @@ In both red and white wine, the alcohol positively influence the quality.
 
 ggplot(data=df,aes(x = quality, y = volatile.acidity,color = color)) +
   geom_point(position=position_jitter(),size=1) +
-  geom_smooth(method='lm')
+  geom_smooth(method='lm') +
+  ylab("volatile.acidity(g/L)")
+  ggtitle("Acids vs. Quality for Red and White Wine")
 
 ```
+
 In both red and white wine, the volatile.acidity negatively influence the quality. However, the red wine is more sensitive while the relationship between volatile.acidity and quality of white wine is relatively weak.
 
 ```{r echo=FALSE, warning=FALSE, message=FALSE, Multivariate_Plots_chlorides}
@@ -260,7 +337,9 @@ In both red and white wine, the volatile.acidity negatively influence the qualit
 ggplot(data=df,aes(x = quality, y = chlorides, color = color)) +
   geom_point(position=position_jitter(),size=1) +
   geom_smooth(method='lm') +
-  scale_y_log10()
+  scale_y_log10() +
+  ylab("chlorides(g/L") +
+  ggtitle("Chlorides vs. Quality for Red and White Wine")
 
 ```
 
@@ -301,7 +380,9 @@ Both wine show some trend under the influence of alcohol and chlorides.
 ### Plot One: Quality Distribution of Red & White Wine
 
 ```{r echo=FALSE,message=FALSE,warning=FALSE,Plot_One}
-ggplot(df, aes(x=quality,fill=color)) + geom_bar(stat="count") + xlab("quality(rating)") +ylab("count(number)")
+ggplot(df, aes(x=quality,fill=color)) + geom_bar(stat="count") + 
+  xlab("quality(rating)") + ylab("count(number)") +
+  ggtitle("Wine Quality Distribution")
 ```
 
 This figure shows the distribution of wine ratings. Among the 1599 red wine sample and 4898 white wine sample, most samples were rated as 5 or 6, 2000+ and 2800+ respecively. The quality of wine has a slightly skewed normal distribution. The lowest rating is 3 and the highest rating is 9.In the samples rated under 6, the red wine takes about one third portion. However, in high-rated samples, red wine takes a much smaller portion.
@@ -316,10 +397,13 @@ grid.arrange(qplot(x = color, y = volatile.acidity, data = df, geom = "boxplot",
                    xlab = "alcohol"),
              qplot(x = color, y = residual.sugar, data = df, geom = "boxplot",
                    ylab = "residual.sugar(g/L)",
-                   xlab = "Sweet"),
+                   xlab = "Sweet",
+                   ylim=c(0,25)),
              qplot(x = color, y = chlorides, data = df, geom = "boxplot",
                    ylab = "chlorides(g/L)",
-                   xlab = "Chlorides"),
+                   xlab = "Chlorides",
+                   ylim=c(0,0.2)),
+             top = "Content Difference in Red and White",
              ncol=2)
 ```
 

@@ -1,3 +1,3 @@
 # Tutorial
 
-Udacity R project
+This is my tutorial repository.
