@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="http://dimplejs.org/dist/dimple.v2.0.0.min.js"></script>
+    <style>
+      h2 {
+        text-align: center;
+        color: black;
+      }
+      path {
+          stroke-width:2;
+          fill: none;
+      }
+
+      .axis path,
+      .axis line {
+        stroke: black;
+        stroke-width: 1;
+      }
+      .axis text {
+        font-family: arial;
+        font-size: 11px;
+      }
+      div.hand_buttons {
+        position: fixed;
+        top: 5px;
+        left: 50px;
+      }
+
+      div.hand_buttons div {
+        background-color: rgb(251, 201, 127);
+        padding: 6px;
+        margin: 7px;
+    </style>
+
+    <script type="text/javascript">
+      function draw(data) {
+
+          "use strict";
+          var margin = 70,
+              width = 1400 - margin,
+              height = 600 - margin,
+              padding=10;
+
+           d3.select("body")
+             .append("h2")
+            .text("Baseball Players");
+
+          var svg = d3.select("body")
+              .append("svg")
+              .attr("width", width + margin)
+              .attr("height", height + margin)
+              .append('g')
+              .attr('class','chart');
+
+    
+          // Find range of height/weight ratio
+          var ratio_extent=d3.extent(data,function(d){
+              return +d['height']/d['weight'];
+          });
+          // Find range of batting
+          var batting_extent=d3.extent(data,function(d){
+              return  +d['avg'];
+          });
+          // Find range of HR
+          var HR_extent=d3.extent(data,function(d){
+              return +d['HR'];
+          });
+          // add new column to data
+         
+          // Create x-axis scale mapping ratio -> pixels
+          var ratio_scale = d3.scale.linear()
+            .range([margin, width])
+            .domain(ratio_extent);
+          // Create y-axis scale batting-> pixels
+          var batting_scale = d3.scale.linear()
+            .range([height, margin])
+            .domain(batting_extent);
+          // Create y-axis scale HR-> pixels
+          var HR_scale = d3.scale.linear()
+            .range([height, margin])
+            .domain(HR_extent);
+
+          var ratio_axis = d3.svg.axis()
+            .scale(ratio_scale)
+            .ticks(20);
+
+          var batting_axis = d3.svg.axis()
+            .scale(batting_scale)
+            .orient("left")
+            .ticks(20)
+            
+          var HR_axis = d3.svg.axis()
+            .scale(HR_scale)
+            .orient("right")
+            .ticks(20);
+
+          d3.select("svg")
+            .append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + height + ")")
+            .call(ratio_axis);
+
+          d3.select("svg")
+            .append("g")
+            .attr("class", "y axis")
+            .attr("transform", "translate(" + margin + ",0)")
+            .attr("fill","red")
+            .call(batting_axis);
+
+          d3.select("svg")
+            .append("g")
+            .attr("class", "y axis")
+            .attr("transform", "translate(" + width + ",0)")
+            .attr("fill","blue")
+            .call(HR_axis);
+
+           function key_func(d){
+            return d["name"]
+          }
+          //debugger;
+          svg.append('g')
+            .selectAll("circle")
+            .data(data,key_func)
+            .enter()
+            .append("circle")
+            .attr("cx", function(d) {return ratio_scale((+d["height"])/(+d["weight"]));
+            })
+            .attr("cy", function(d) {return batting_scale(+d["avg"]);
+            })
+            .attr("r", 3)
+            .attr("fill", 'red');
+      
+          svg.append('g')
+            .selectAll("rect")
+            .data(data,key_func)
+            .enter()
+            .append("rect")
+            .attr("x", function(d) {return ratio_scale((+d["height"])/(+d["weight"]));
+            })
+            .attr("y", function(d) {return HR_scale(+d["HR"]);
+            })
+            .attr("width", 4)
+            .attr("height",4)
+            .attr("fill", 'blue');
+
+            var num=20;
+            var x_step=(ratio_extent[1]-ratio_extent[0])/num,x_axis=[];
+            for(var i=0;i<=num;i++){
+              x_axis.push(x_step*i+ratio_extent[0]);
+            }
+           // Statistics
+            for(var i=0;i<data.length;i++){
+              for(var j=0;j<num;j++){
+                if(data[i]['height']/data[i]['weight']>=x_axis[j] && data[i]['height']/data[i]['weight']<=x_axis[j+1]){
+                    data[i]["sign"]=j;
+                    break;
+                }
+              }
+            }
+
+          function agg_hand(leaves){
+            var mean_avg=d3.mean(leaves,function(d){
+              return d["avg"];
+            })
+           // debugger;
+            var mean_HR=d3.mean(leaves,function(d){
+              return d["HR"];
+            })
+            return {
+              "mean_avg":mean_avg,
+              "mean_HR": mean_HR,
+            };
+          }
+          var valueline_1=d3.svg.line()
+                            .x(function(d){return ratio_scale((+d['key']+0.5)*x_step+ratio_extent[0]);})
+                            .y(function(d){return batting_scale(d.values['mean_avg']);});
+          var valueline_2=d3.svg.line()
+                            .x(function(d){return ratio_scale((+d['key']+0.5)*x_step+ratio_extent[0]);})
+                            .y(function(d){return HR_scale(d.values['mean_HR']);});
+          var nest_filter   =   d3.nest()
+                      .key(function(d){
+                      return d['sign']
+                      })
+                      .rollup(agg_hand)
+                      .entries(data)
+          nest_filter.sort(function(a,b){
+              return (+a['key'])-(+b['key']);
+             });
+          // Path definition
+          svg.append("path")
+             .attr("class","line_1")
+             .attr('d',valueline_1(nest_filter))
+             .style("stroke",'red');
+
+          svg.append("path")
+             .attr("class","line_2")
+             .attr('d',valueline_2(nest_filter))
+             .style("stroke",'blue');
+       // Axis label;
+          svg.append("text")
+             .attr("text-anchor","middle")
+             .attr("transform","translate("+width/2+","+(height+4*padding)+")")
+             .text("Height/Weight");
+           svg.append("text")
+              .attr("text-anchor","middle")
+              .attr("transform","translate("+2*padding+","+height/2+")rotate(-90)")
+              .text("Batting Average")
+              .attr("fill",'red');
+          svg.append("text")
+              .attr("text-anchor","middle")
+              .attr("transform","translate("+(width+padding*4)+","+height/2+")rotate(90)")
+              .text("Home Runs")
+              .attr("fill",'blue');
+
+          //add legend
+
+          var name={"R":"Right Hand","L":"Left Hand","B":"Both Hand"};
+
+          function update(hand){
+            var filtered = data.filter(function(d){return d['handedness']===hand;});
+
+            d3.select("h2")
+              .text(name[hand]+" "+"Baseball Players");
+            // do statistics;
+            var nest_filter_sub   =   d3.nest()
+                                    .key(function(d){
+                                      return d['sign']
+                                    })
+                                    .rollup(agg_hand)
+                                    .entries(filtered)
+            nest_filter_sub.sort(function(a,b){
+              return (+a['key'])-(+b['key']);
+            })
+            var circles=svg.selectAll('circle')
+                           .data(filtered,key_func);
+            var rects=svg.selectAll('rect')
+                         .data(filtered,key_func);
+            var path_1 =svg.select('.line_1')
+                            .attr("d",valueline_1(nest_filter_sub));
+             var path_2 = svg.select(".line_2")
+                            .attr("d",valueline_2(nest_filter_sub));
+                         circles.exit().remove();
+             rects.exit().remove();
+             // path_1.exit().remove();
+             // path_2.exit().remove();
+             // //debugger;
+             circles.enter()
+                    .append("circle")
+                    .transition()
+                    .duration(1000)
+                    .attr("cx", function(d) {return ratio_scale((+d["height"])/(+d["weight"]));
+                       })
+                    .attr("cy", function(d) {return batting_scale(+d["avg"]);
+                        })
+                  .attr("r", 3)
+                  .attr("fill", 'red');
+             rects.enter()
+                  .append("rect")
+                  .transition()
+                  .duration(1000)
+                  .attr("x", function(d) {return ratio_scale((+d["height"])/(+d["weight"]));})
+                  .attr("y", function(d) {return HR_scale(+d["HR"]);})
+                .attr("height", 4)
+                .attr("width",4)
+                .attr("fill", 'blue');      
+         }
+        //  debugger;
+          var hands=["R","L","B"];
+          var hand_idx=0;
+          var hand_interval=setInterval(function(){
+            update(hands[hand_idx]);
+            hand_idx++;
+          //  debugger;
+            if(hand_idx>=hands.length){
+              clearInterval(hand_interval);
+              var buttons=d3.select("body")
+                            .append("div")
+                            .attr("class","hand_buttons")
+                            .selectAll("div")
+                            .data(hands)
+                            .enter()
+                            .append("div")
+                            .text(function(d){
+                              return d;
+                            });
+              buttons.on("click",function(d){
+                  d3.select(".hand_buttons")
+                    .selectAll("div")
+                    .transition()
+                    .duration(500)
+                    .style("color","black")
+                    .style("backgroud","Blue");
+
+                  d3.select(this)
+                    .transition()
+                    .duration(500)
+                    .style("color","red")
+                    .style("backgroud","lightBlue");
+                  update(d);
+                });
+          }
+        },2000);
+      }
+
+    </script>
+  </head>
+<body>
+  <script type="text/javascript">
+
+  d3.csv("baseball_data.csv",draw);
+  </script>
+</body>
+</html>

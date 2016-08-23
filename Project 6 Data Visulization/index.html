@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="box.js"></script>
+    <style>
+      h2 {
+        color: black;
+        top: 500px;
+        margin-left:300px;
+      }
+      path {
+          stroke-width:2;
+          fill: none;
+      }
+
+      .axis path,
+      .axis line {
+        stroke: black;
+        stroke-width: 1;
+      }
+      .axis text {
+        font-family: arial;
+        font-size: 14px;
+      }
+
+      .box line,
+      .box rect,
+      .box circle{
+        fill:#fff;
+        stroke:#000;
+        stroke-width:1.5px;
+      }
+      .box .center{
+        stroke-dasharray: 3,3;
+      }
+      .box .outlier{
+        fill:none;
+        stroke:#ccc;
+      }
+      div.hand_buttons {
+        position: fixed;
+        top: 500px;
+        left: 50px;
+      }
+
+      div.hand_buttons div {
+        background-color: rgb(251, 201, 127);
+        padding: 6px;
+        margin: 7px;
+      }
+    </style>
+
+    <script type="text/javascript">
+      function draw(data) {
+
+          "use strict";
+          var margin = {top:50,right:50,bottom:50,left:50},
+              width = 1200 - margin.left-margin.right,
+              height = 500 - margin.top-margin.bottom,
+              offset=120,
+              padding=250;
+
+          var data_avg=[];
+          data_avg[0]=[];
+          data_avg[1]=[];
+          data_avg[2]=[];
+          for(var i=0;i<3;i++){
+            data_avg[i]=[];
+          }
+
+          var data_HR=[];
+          data_HR[0]=[];
+          data_HR[1]=[];
+          data_HR[2]=[];
+          for(var i=0;i<3;i++){
+            data_HR[i]=[];
+          }
+
+          var data_BMI=[];
+          data_BMI[0]=[];
+          data_BMI[1]=[];
+          data_BMI[2]=[];
+          for(var i=0;i<3;i++){
+            data_BMI[i]=[];
+          }
+          
+          // for each handedness, add batting avg, HR and BMI properties;
+          // Back up players are deleted from the data;
+          var min_avg=Infinity,
+              min_HR=Infinity,
+              min_BMI=Infinity,
+              max_avg=-Infinity,
+              max_HR=-Infinity,
+              max_BMI=-Infinity;
+          data.forEach(function(x){
+            if((+x["avg"]) || (+x["HR"])){
+            if(x["handedness"]=="R"){
+              data_avg[0].push(+x["avg"]);
+              data_HR[0].push(+x["HR"]);
+              data_BMI[0].push(+x["BMI"]);
+            }
+
+            if(x["handedness"]=="L" ){
+              data_avg[1].push(+x["avg"]);
+              data_HR[1].push(+x["HR"]);
+              data_BMI[1].push(+x["BMI"]);
+            }
+
+            if(x["handedness"]=="B"){
+              data_avg[2].push(+x["avg"]);
+              data_HR[2].push(+x["HR"]);
+              data_BMI[2].push(+x["BMI"]);
+            }
+              if(min_avg>(+x["avg"])) min_avg=(+x.avg);
+              if(min_BMI>(+x.BMI)) min_BMI=(+x.BMI);
+              if(min_HR>(+x.HR)) min_HR=(+x.HR);
+              if(max_avg<(+x.avg)) max_avg=(+x.avg);
+              if(max_HR<(+x.HR)) max_HR=(+x.HR);
+              if(max_BMI<(+x.BMI)) max_BMI=(+x.BMI);
+            }
+          })
+          
+          // store the statistics as a new object;
+          var data_f=[data_avg,data_HR,data_BMI];
+
+          // Find range BMI
+          var BMI_extent=[min_BMI,max_BMI];
+
+          // Find range of batting
+          var avg_extent=[min_avg,max_avg];
+
+          // Find range of HR
+          var HR_extent=[min_HR,max_HR]
+          
+          var extent=[avg_extent,HR_extent,BMI_extent];
+          var num={"R":0,"L":0,"B":0};
+
+          for(var i=0;i<data.length;i++){
+              if(+data[i].avg || +data[i].HR)
+                num[data[i]['handedness']]++;
+          }
+          // Create x-axis scale mapping BMI -> pixels
+          var BMI_scale = d3.scale.linear()
+            .range([height+margin.top, margin.top])
+            .domain(BMI_extent);
+          
+          // Create y-axis scale batting-> pixels
+          var avg_scale = d3.scale.linear()
+            .range([height+margin.top, margin.top])
+            .domain(avg_extent);
+          
+          // Create y-axis scale HR-> pixels
+          var HR_scale = d3.scale.linear()
+            .range([height+margin.top, margin.top])
+            .domain(HR_extent);
+
+          var BMI_axis = d3.svg.axis()
+            .scale(BMI_scale)
+            .orient("left")
+            .ticks(10);
+
+          var avg_axis = d3.svg.axis()
+            .scale(avg_scale)
+            .orient("left")
+            .ticks(10);
+
+          var HR_axis = d3.svg.axis()
+            .scale(HR_scale)
+            .orient("left")
+            .ticks(10);
+
+          var y_axis=[avg_axis,HR_axis,BMI_axis];
+
+          //set up the whole svg;
+          var chart=d3.box()
+                      .whiskers(iqr(1.5))
+                      .height(height)
+                      .width(padding/2);
+
+              chart.domain(avg_extent);
+
+          var svg=d3.select("body")
+                    .append("svg")
+                    .attr("width",width+margin.left+margin.right)
+                    .attr("height",height+margin.top+margin.bottom)
+                    .attr("transform","translate("+margin.left+","+0+")")
+                    .append("g")
+                    .attr("class","box");
+                    
+                svg.selectAll(".box")
+                   .data(data_avg)
+                   .enter()
+                   .append("g")
+                   .attr("class","box")
+                   .attr("transform",translate)
+                   .call(chart);
+
+               function translate(d,i){
+                  return "translate("+(i*(width/3)+offset)+","+margin.top+")";
+               }
+    
+          //Returns a function to compute the interquatile range, from bl.ocks.org/jensgrubert/7789216;
+          function iqr(k){
+            return function(d,i){
+              var q1 = d.quartiles[0],
+                  q3 = d.quartiles[2],
+                  iqr = (q3 -q1)*k,
+                  k=-1,
+                  j=d.length;
+              while(d[++k]<q1-iqr);
+              while(d[--j]>q3+iqr);
+              return[k,j];
+            }
+          }
+          var name={"R":"Right Hand","L":"Left Hand","B":"Both Hand"};
+          var property=["Batting Average","Home Run","BMI"];
+          //Set up x axis;
+          var x_label=["Right Handedness("+num.R+" players)","Left Handedness("+num.L+" players)","Both Handedness("+num.B+" players)"];
+          var x=d3.scale.ordinal()
+                  .domain(x_label.map(function(d){return d;}))
+                  .rangeRoundBands([0,width],0.8,0.4);
+          var x_axis=d3.svg.axis()
+                       .scale(x)
+                       .orient("bottom")
+
+           d3.select("svg").append("g")
+              .attr("class","x axis")
+              .attr("transform","translate("+0+","+(height+margin.top+10)+")")
+              .call(x_axis);
+
+          // set up y-axis
+            d3.select("svg").append("g")
+               .attr("class","y axis")
+               .call(avg_axis)
+               .attr("transform","translate("+50+","+0+")")
+               .append("text");
+               
+             d3.select(".y.axis")  
+               .select("text")
+               .attr("transform","rotate(-90)")
+               .attr("x",100)
+               .attr("y",20)
+               .style("text-anchor","end")
+               .text(property[0]);
+        
+
+          // Title of the graph
+            d3.select("body")
+              .append("h2")
+              .text( property[0]+" Statistics with Handedness");
+
+        
+
+          function key_func(d){
+             return d[1];
+          }
+
+          //Update graph
+          function update(num){
+
+            //updata title
+            d3.select("h2")
+              .text(property[num]+" Statistics with Handedness");
+            //update y axis
+            d3.select("svg").select(".y.axis")
+              .call(y_axis[num])
+              .select("text")
+              .attr("x",100)
+              .attr("y",20)
+              .attr("transform","rotate(-90)")
+              .style("text-anchor","end")
+              .text(property[num]);
+            //update chart
+            chart.domain(extent[num]);
+            var new_svg=svg.selectAll(".box")
+                          .data(data_f[num],key_func);
+      
+            new_svg.exit().remove();
+             new_svg.enter()
+                    .append("g")
+                    .attr("class","box")
+                    .attr("transform",translate)
+                    .call(chart);
+         }
+        
+        // create buttons;
+          var hand_idx=1;
+          var hands=[0,1,2];
+          var hand_interval=setInterval(function(){
+            update(hand_idx);
+            hand_idx++;
+        
+            if(hand_idx>=3){
+              clearInterval(hand_interval);
+              var buttons=d3.select("body")
+                            .append("div")
+                            .attr("class","hand_buttons")
+                            .selectAll("div")
+                            .data(hands)
+                            .enter()
+                            .append("div")
+                            .text(function(d){
+                              return property[d];
+                            });
+              
+              buttons.on("click",function(d){
+                  d3.select(".hand_buttons")
+                    .selectAll("div")
+                    .transition()
+                    .duration(1200)
+                    .style("color","black")
+                    .style("backgroud","Blue");
+
+                  d3.select(this)
+                    .transition()
+                    .duration(1200)
+                    .style("color","red")
+                    .style("backgroud","lightBlue");
+                  update(d);
+                });
+          }
+        },2000);
+      }
+
+    </script>
+  </head>
+<body>
+  <script type="text/javascript">
+
+  d3.csv("baseball_data.csv",draw);
+  </script>
+</body>
+</html>
